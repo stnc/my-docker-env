@@ -34,7 +34,10 @@ https://medium.com/@ozhanli/how-to-install-vim-nano-in-docker-container-4343e0ac
 cat /etc/os-release
 
 
-## docker da dosyada degislik yapmak 
+
+## docker change file
 https://stackoverflow.com/questions/32750748/how-to-edit-files-in-stopped-not-starting-docker-container
 
-
+## docker show ip adress
+https://stackoverflow.com/questions/17157721/how-to-get-a-docker-containers-ip-address-from-the-host
+docker inspect -f '{{.Name}} - {{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' $(docker ps -aq)
