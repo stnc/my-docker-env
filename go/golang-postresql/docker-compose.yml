@@ -7,6 +7,8 @@ services:
 # https://towardsdatascience.com/how-to-run-postgresql-using-docker-15bf87b452d4
 # https://levelup.gitconnected.com/creating-and-filling-a-postgres-db-with-docker-compose-e1607f6f882f   ıcınde create tanble ornegi var 
 
+# https://firehydrant.com/blog/develop-a-go-app-with-docker-compose/
+
 # docker-compose up -d --build
 # docker da terminali ac
 # cd /data/postgres
@@ -20,25 +22,39 @@ services:
 # CONFIG SET requirepass MDNcVb924a
 
 
-  # App Service
- #  golang:
-    # Configuration for building the docker image for the service
-  #   build:
-  #     context: ./ # Use an image built from the specified dockerfile in the current directory.
- #      dockerfile: Dockerfile
- #    container_name: krbn
- #    volumes:
-  #     - "D:/docker/go2:/app"
-  #   ports:
- #     - "8080:8080" # Forward the exposed port 8080 on the container to port 8080 on the host machine
- #    restart: unless-stopped
-  #   depends_on: 
-  #     - redis # This service depends on redis. Start that first.
-  #     - postgres # This service depends on redis. Start that first.
-  #   environment: # Pass environment variables to the service
-  #     REDIS_URL: redis:6379    
-  #   networks: # Networks to join (Services on the same network can communicate with each other using their name)
-   #    - backend
+services:
+  app:
+    container_name: golang_container
+    build:
+      dockerfile: Dockerfile
+      context: .
+      target: dev
+    volumes:
+    - ./:/Users/stnc/go-stnc/docker-go
+    environment:
+      API_SERVER_ADDR: ":3000"
+      DATABASE_URL: postgres://local-dev@db/api?sslmode=disable
+    ports:
+    - "3000:3000"
+    links:
+    - postgres
+
+  migrate: &basemigrate
+    profiles: ["tools"]
+    image: migrate/migrate
+    entrypoint: "migrate -database postgresql://local-dev@db/api?sslmode=disable -path /tmp/migrations"
+    command: up
+    links:
+      - postgres
+    volumes:
+      - ./migrations:/tmp/migrations
+
+  create-migration:
+    <<: *basemigrate
+    entrypoint: migrate create -dir /tmp/migrations -ext sql
+    command: ""
+
+
   postgres:
     container_name: postgres_container
     image: postgres:14.1
