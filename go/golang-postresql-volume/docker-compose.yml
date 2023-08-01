@@ -29,10 +29,15 @@ services:
   golang:
     # platform: linux/amd64
     container_name: golang_container
-    build:
-      dockerfile: Dockerfile
-      context: .
-    volumes: ['golang:/golang']
+    # build:
+      # dockerfile: Dockerfile
+      # context: .
+    # volumes: ['golang:/Users/stnc/go-stnc/docker-go']
+    image: golang:1.14.4-alpine
+    volumes:
+      - ./golang:/golang
+    working_dir: /golang
+    command: ash -c "./scripts/generate-certificate.sh && go run main.go"
     environment:
       API_SERVER_ADDR: ":3000"
       DATABASE_URL: postgres://local-dev@db/api?sslmode=disable
