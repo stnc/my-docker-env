@@ -1,5 +1,4 @@
-version: '3.5'
-services:
+version: '3'
 ### eklenecek onemli 
 #https://articles.wesionary.team/dockerize-a-golang-applications-with-mysql-and-phpmyadmin-hot-reloading-included-86eb7a6cf8d5
 
@@ -9,13 +8,16 @@ services:
 
 # https://firehydrant.com/blog/develop-a-go-app-with-docker-compose/
 
+
+#https://www.callicoder.com/docker-golang-image-container-example/
+
 # docker-compose up -d --build
 # docker da terminali ac
 # cd /data/postgres
 # echo "host all all all $POSTGRES_HOST_AUTH_METHOD" >> pg_hba.conf
 #pgadmine girilecek hostname adi localhost degil -> postgres_container olacak
 
-#redis
+#redis --https://hackernoon.com/how-to-configurate-redis-redis-commander-docker-616136f2
 # apk update
 # apk add nano
 # redis-cli 
@@ -24,20 +26,23 @@ services:
 
 services:
   app:
+    # platform: linux/amd64
     container_name: golang_container
     build:
       dockerfile: Dockerfile
       context: .
-      target: dev
+      # target: dev
     volumes:
     - ./:/Users/stnc/go-stnc/docker-go
     environment:
       API_SERVER_ADDR: ":3000"
       DATABASE_URL: postgres://local-dev@db/api?sslmode=disable
+      VIRTUAL_HOST: app.example.com
     ports:
     - "3000:3000"
     links:
     - postgres
+    restart: always
 
   migrate: &basemigrate
     profiles: ["tools"]
@@ -90,31 +95,38 @@ services:
       - backend
     restart: unless-stopped
 
-  # # Redis Service   
+
+
+
+
+
   redis:
-    image: redis
-    restart: unless-stopped
     container_name: redis
+    hostname: redis
+    image: arm64v8/redis:alpine
+    command: redis-server --save 60 1 --requirepass MDNcVb924a --loglevel warning 
     ports:
       - "6379:6379"
-    command: redis-server --save 60 1 --requirepass MDNcVb924a --loglevel warning
-
-
+    volumes:
+      - redis-data:/data
+    networks:
+      - backend
 
   redis-commander:
-    container_name: redis-commander 
+    container_name: redis-commander
     hostname: redis-commander
-    image: rediscommander/redis-commander:latest ## other linux and windows 
-    image: arm64v8/redis:alpine #https://stackoverflow.com/questions/72957168/how-to-run-redis-docker-container-for-mac-silicon
+    image: rediscommander/redis-commander:latest
+    restart: always
     environment:
-    - REDIS_HOST=redis
-    - REDIS_PASSWORD=MDNcVb924a
+      - REDIS_HOSTS=redis:127.0.0.1:6379 -p 8081:8081 
+      - HTTP_USER=root
+      - HTTP_PASSWORD=qwerty
     ports:
-      - "127.0.0.1:8081:8081"
+      - "8081:8081"
+    networks:
+      - backend
     depends_on:
       - redis
-    restart:
-      unless-stopped
 
   adminer:
     image: adminer
@@ -133,3 +145,4 @@ volumes:
     postgres:
     pgadmin:
     golang:
+    redis-data:
