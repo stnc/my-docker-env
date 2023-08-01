@@ -11,6 +11,7 @@ version: '3'
 
 #https://www.callicoder.com/docker-golang-image-container-example/
 
+#https://firehydrant.com/blog/develop-a-go-app-with-docker-compose/   buradan devam et 
 # docker-compose up -d --build
 # docker da terminali ac
 # cd /data/postgres
@@ -32,8 +33,7 @@ services:
       dockerfile: Dockerfile
       context: .
       # target: dev
-    volumes:
-    - ./:/Users/stnc/go-stnc/docker-go
+    volumes: ['golang:/Users/stnc/go-stnc/docker-go']
     environment:
       API_SERVER_ADDR: ":3000"
       DATABASE_URL: postgres://local-dev@db/api?sslmode=disable
@@ -144,5 +144,9 @@ networks:
 volumes:
     postgres:
     pgadmin:
-    golang:
     redis-data:
+    golang:
+      external: true
+
+
+
