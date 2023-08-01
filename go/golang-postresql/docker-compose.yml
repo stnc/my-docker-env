@@ -1,4 +1,4 @@
-version: '3'
+version: '3.5'
 ### eklenecek onemli 
 #https://articles.wesionary.team/dockerize-a-golang-applications-with-mysql-and-phpmyadmin-hot-reloading-included-86eb7a6cf8d5
 
@@ -26,23 +26,31 @@ version: '3'
 
 
 services:
-  app:
+  golang:
     # platform: linux/amd64
     container_name: golang_container
-    build:
-      dockerfile: Dockerfile
-      context: .
-      # target: dev
-    volumes: ['golang:/Users/stnc/go-stnc/docker-go']
+    # build:
+      # dockerfile: Dockerfile
+      # context: .
+    # volumes: ['golang:/Users/stnc/go-stnc/docker-go']
+    image: golang:1.14.4-alpine
+    volumes:
+      - ./golang:/golang
+    working_dir: /golang
+    command: ash -c "./scripts/generate-certificate.sh && go run main.go"
     environment:
       API_SERVER_ADDR: ":3000"
       DATABASE_URL: postgres://local-dev@db/api?sslmode=disable
       VIRTUAL_HOST: app.example.com
     ports:
     - "3000:3000"
-    links:
-    - postgres
-    restart: always
+    # links:
+    # - postgres
+    # restart: always
+
+
+
+
 
   migrate: &basemigrate
     profiles: ["tools"]
@@ -69,7 +77,6 @@ services:
       POSTGRES_INITDB_ARGS: '--encoding=UTF-8 --lc-collate=C --lc-ctype=C'
       POSTGRES_HOST_AUTH_METHOD: "trust"
       PGDATA: /data/postgres
-
     volumes:
        - postgres:/data/postgres
     ports:
@@ -77,7 +84,10 @@ services:
     networks:
       - backend
     restart: unless-stopped
-  
+    # command: ash -c "./scripts/pq-host.sh" 
+
+
+
   pgadmin:
     container_name: pgadmin_container
     image: dpage/pgadmin4
@@ -88,7 +98,6 @@ services:
       
     volumes:
        - pgadmin:/var/lib/pgadmin
-
     ports:
       - "${PGADMIN_PORT:-5050}:80"
     networks:
@@ -112,6 +121,9 @@ services:
     networks:
       - backend
 
+
+
+
   redis-commander:
     container_name: redis-commander
     hostname: redis-commander
@@ -128,6 +140,8 @@ services:
     depends_on:
       - redis
 
+
+
   adminer:
     image: adminer
     restart: always
@@ -137,6 +151,9 @@ services:
     networks:
       - backend    
 
+
+
+
 networks:
   backend:
     driver: bridge
@@ -145,8 +162,3 @@ volumes:
     postgres:
     pgadmin:
     redis-data:
-    golang:
-      external: true
-
-
-
