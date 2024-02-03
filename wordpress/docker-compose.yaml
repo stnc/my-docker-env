@@ -12,7 +12,8 @@ services:
 
   db:
     image: mariadb:10.5.8
-    container_name: stnc-wp-maria
+    command: --default-authentication-plugin=mysql_native_password
+    container_name: stnc-wpu-maria
     volumes:
       - wpDbData:/var/lib/mysql
 
@@ -26,7 +27,7 @@ services:
       MYSQL_PASSWORD: wppassword
 
     ports:
-      - 8889:3306
+      - 9089:3306
 
     restart: always
 
@@ -34,11 +35,14 @@ services:
       - wpNetwork
     volumes: ["./:/var/www/mysqlData"]
   # phpmyadmin
+    #  command: >
+    # bash -c "python manage.py migrate
+    # && python manage.py runserver 0.0.0.0:8000"
 
   phpmyadmin:
     depends_on:
       - db
-    container_name: stnc-wp-phpmyadmin
+    container_name: stnc-wpu-phpmyadmin
     platform: linux/x86_64
     image: phpmyadmin/phpmyadmin:5.0.2
 
@@ -54,7 +58,7 @@ services:
   
 
     ports:
-      - 8082:80
+      - 9082:80
 
     restart: always
 
@@ -64,14 +68,14 @@ services:
   # wordpress
 
   wordpress:
-    container_name: stnc-wp-wordpress
+    container_name: stnc-wpu-wordpress
     depends_on:
       - db
 
     image: wordpress:latest
 
     ports:
-      - 8083:80
+      - 9083:80
 
       # - 443:443
 
@@ -85,10 +89,16 @@ services:
       WORDPRESS_DB_PASSWORD: wppassword
       # WORDPRESS_DEBUG: 1
       # WORDPRESS_CONFIG_EXTRA: |
-      #   define( 'WP_DEBUG_LOG', true );
-      #   define( 'WP_DEBUG_DISPLAY', true );
+      #   define( ""WP_DEBUG_LOG"", true );
+      #   define( ""WP_DEBUG_DISPLAY"", true );
      
-    volumes: ["./:/var/www/html"]
-
+    volumes: 
+      - "./:/var/www/html"
+                  # Theme, plugins and uploads
+      # - ./wp-content:/var/www/html/wp-content
+      # Configurations
+      # - .htaccess:/var/www/html/.htaccess
+      # PHP Configuration
+      - ./php-extra.ini:/usr/local/etc/php/conf.d/php-extra.ini
     networks:
       - wpNetwork
